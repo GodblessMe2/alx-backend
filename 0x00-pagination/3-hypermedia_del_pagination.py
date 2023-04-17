@@ -45,21 +45,24 @@ class Server:
         """
           Returns a dictionary.
         """
-        assert type(index) == int
-        assert type(page_size) == int
-        csv = self.indexed_dataset()
-        csv_size = len(csv)
-        assert 0 <= index < csv_size
+        dataset = self.indexed_dataset()
+        data_length = len(dataset)
+        assert 0 <= index < data_length
+        response = {}
         data = []
-        _next = index
-        for _ in range(page_size):
-            while not csv.get(_next):
-                _next += 1
-            data.append(csv.get(_next))
-            _next += 1
-        return {
-            "index": index,
-            "data": data,
-            "page_size": page_size,
-            "next_index": _next
-        }
+        response['index'] = index
+        for i in range(page_size):
+            while True:
+                curr = dataset.get(index)
+                index += 1
+                if curr is not None:
+                    break
+            data.append(curr)
+
+        response['data'] = data
+        response['page_size'] = len(data)
+        if dataset.get(index):
+            response['next_index'] = index
+        else:
+            response['next_index'] = None
+        return response
